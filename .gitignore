@@ -1,0 +1,53 @@
+## .NET / ASP.NET Core
+
+# Build outputs
+bin/
+obj/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docview
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# Publish output
+publish/
+**/Properties/PublishProfiles/
+
+# Entity Framework migrations (keep migrations, ignore snapshots if preferred)
+# Uncomment if you want to ignore EF snapshots:
+# **/Migrations/*ModelSnapshot.cs
+
+## SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
+## Secrets / Config
+appsettings.Development.json
+appsettings.Local.json
+*.pfx
+*.p12
+secrets.json
+
+## OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## Logs
+*.log
+logs/

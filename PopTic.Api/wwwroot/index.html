@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tech Conference 2026 — PopTic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    background: #0a1120;
+    font-family: 'Inter', -apple-system, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 32px 16px 64px;
+    min-height: 100vh;
+    background-image: radial-gradient(circle at 1px 1px, rgba(79,70,229,0.08) 1px, transparent 0);
+    background-size: 28px 28px;
+  }
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes spin     { to   { transform:rotate(360deg); } }
+  @keyframes pulse    { 0%,100% { opacity:1; } 50% { opacity:.45; } }
+  @keyframes checkDraw { from { stroke-dashoffset: 30; } to { stroke-dashoffset: 0; } }
+  @keyframes circlePop { from { transform:scale(.7); opacity:0; } to { transform:scale(1); opacity:1; } }
+  @keyframes ticketIn  { from { opacity:0; transform:translateY(10px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input::placeholder { color: #475569; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const C = {
+  bg:         '#0F172A',
+  surface:    '#1E293B',
+  surfaceAlt: '#263548',
+  border:     '#334155',
+  borderSoft: '#1E293B',
+  primary:    '#4F46E5',
+  primaryHov: '#4338CA',
+  success:    '#10B981',
+  successHov: '#059669',
+  warning:    '#F59E0B',
+  danger:     '#EF4444',
+  txt1:       '#F8FAFC',
+  txt2:       '#94A3B8',
+  txt3:       '#64748B',
+  txtOff:     '#475569',
+  sans: "'Inter', -apple-system, sans-serif",
+  mono: "'IBM Plex Mono', monospace",
+};
+
+const EVENT_ID = 1;
+const PRICE_PER_TICKET = 250;
+const EVENT = {
+  title: 'Tech Conference 2026',
+  date:  'Saturday, 15 August 2026',
+  time:  '09:00 – 18:00',
+  venue: 'BITEC Bangkok, Hall 3',
+};
+
+/* ── Primitive Components ── */
+
+function Btn({ children, variant='primary', size='md', fullWidth, disabled, loading, onClick, type='button' }) {
+  const sizes = {
+    sm: { fontSize:'13px', padding:'8px 16px', height:'36px', borderRadius:'7px' },
+    md: { fontSize:'15px', padding:'11px 20px', height:'44px', borderRadius:'8px' },
+    lg: { fontSize:'16px', padding:'13px 24px', height:'52px', borderRadius:'9px' },
+  };
+  const variants = {
+    primary:   { background:C.primary,   color:'#fff', border:'none' },
+    success:   { background:C.success,   color:'#fff', border:'none' },
+    secondary: { background:'transparent', color:C.primary, border:`1.5px solid ${C.primary}` },
+    ghost:     { background:'transparent', color:C.txt2,    border:`1.5px solid ${C.border}` },
+    danger:    { background:C.danger,    color:'#fff', border:'none' },
+  };
+  const hov = { primary:C.primaryHov, success:C.successHov, secondary:'rgba(79,70,229,.08)', ghost:'rgba(255,255,255,.05)', danger:'#DC2626' };
+  const dis = disabled || loading;
+  const v = variants[variant] || variants.primary;
+  const s = sizes[size] || sizes.md;
+  return (
+    <button type={type} disabled={dis} onClick={onClick} style={{
+      display:'inline-flex', alignItems:'center', justifyContent:'center', gap:'8px',
+      fontFamily:C.sans, fontWeight:600, letterSpacing:'-0.01em', whiteSpace:'nowrap',
+      cursor: dis?'not-allowed':'pointer', width:fullWidth?'100%':undefined,
+      outline:'none', userSelect:'none',
+      transition:'background 150ms ease, transform 100ms ease, box-shadow 150ms ease',
+      opacity: dis ? .55 : 1,
+      ...s, ...v,
+    }}
+    onMouseEnter={e=>{ if(!dis) { e.currentTarget.style.background=hov[variant]; e.currentTarget.style.boxShadow=variant==='primary'?'0 0 0 4px rgba(79,70,229,.2)':variant==='success'?'0 0 0 4px rgba(16,185,129,.2)':'none'; }}}
+    onMouseLeave={e=>{ if(!dis) { e.currentTarget.style.background=v.background; e.currentTarget.style.boxShadow='none'; }}}
+    onMouseDown={e=>{ if(!dis) e.currentTarget.style.transform='scale(0.97)'; }}
+    onMouseUp={e=>{ e.currentTarget.style.transform='scale(1)'; }}>
+      {loading && <span style={{width:'15px',height:'15px',border:'2px solid rgba(255,255,255,.4)',borderTopColor:'#fff',borderRadius:'50%',display:'inline-block',animation:'spin .7s linear infinite'}}/>}
+      {children}
+    </button>
+  );
+}
+
+function Label({ children, required }) {
+  return (
+    <div style={{fontFamily:C.sans,fontSize:'13px',fontWeight:500,color:C.txt2,marginBottom:'7px',display:'flex',alignItems:'center',gap:'4px'}}>
+      {children}
+      {required && <span style={{color:C.danger,fontSize:'11px'}}>*</span>}
+    </div>
+  );
+}
+
+function TextInput({ value, onChange, placeholder, type='text', prefix, id }) {
+  const [focused, setFocused] = React.useState(false);
+  return (
+    <div style={{display:'flex',alignItems:'center',background:C.surface,border:`1.5px solid ${focused?C.primary:C.border}`,borderRadius:'8px',transition:'border-color 150ms ease, box-shadow 150ms ease',boxShadow:focused?'0 0 0 3px rgba(79,70,229,.2)':'none',overflow:'hidden'}}>
+      {prefix && <span style={{padding:'0 12px',color:C.txt3,fontFamily:C.sans,fontSize:'14px',borderRight:`1px solid ${C.border}`,height:'44px',display:'flex',alignItems:'center',background:'rgba(255,255,255,.02)',flexShrink:0}}>{prefix}</span>}
+      <input id={id} type={type} value={value} onChange={onChange} placeholder={placeholder}
+        onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)}
+        style={{flex:1,background:'transparent',border:'none',outline:'none',padding:'0 14px',height:'44px',fontFamily:C.sans,fontSize:'15px',color:C.txt1,width:'100%'}}/>
+    </div>
+  );
+}
+
+function QRCode({ size = 210 }) {
+  const m = [
+    [1,1,1,1,1,1,1,0,1,0,0,1,0,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,1],
+    [1,0,1,1,1,0,1,0,1,0,1,1,0,0,1,0,1,1,1,0,1],
+    [1,0,1,1,1,0,1,0,0,1,0,1,1,0,1,0,1,1,1,0,1],
+    [1,0,0,0,0,0,1,0,1,0,1,0,0,0,1,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],
+    [0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0],
+    [1,0,1,0,1,1,1,1,0,1,0,1,1,0,1,0,1,1,0,1,0],
+    [0,1,1,0,0,0,0,0,1,1,0,1,0,0,0,1,0,0,1,0,1],
+    [1,1,0,1,0,1,1,0,0,1,1,0,1,1,1,0,1,0,1,0,0],
+    [0,0,1,1,0,0,0,1,1,0,0,1,0,0,1,1,0,1,0,1,1],
+    [1,1,0,0,1,0,1,0,0,1,1,0,1,0,0,1,1,0,1,1,0],
+    [0,0,1,0,0,1,0,1,1,0,0,1,0,1,1,0,0,1,0,0,1],
+    [0,0,0,0,0,0,0,1,0,1,0,0,1,0,1,0,1,0,0,1,0],
+    [1,1,1,1,1,1,1,0,0,1,1,1,0,0,1,0,1,0,1,0,1],
+    [1,0,0,0,0,0,1,0,1,0,0,0,1,1,0,1,0,1,0,1,0],
+    [1,0,1,1,1,0,1,0,0,1,1,0,0,0,1,0,1,0,1,0,1],
+    [1,0,1,1,1,0,1,1,0,0,0,1,0,1,0,1,0,1,0,0,0],
+    [1,0,0,0,0,0,1,0,1,1,1,0,1,0,1,0,1,0,1,0,1],
+    [1,1,1,1,1,1,1,0,0,1,0,1,0,1,0,1,0,1,0,1,0],
+  ];
+  const cols = m[0].length, rows = m.length;
+  const cw = size / cols, ch = size / rows;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{display:'block'}}>
+      {m.map((row,r)=>row.map((cell,c)=>cell===1
+        ? <rect key={`${r}-${c}`} x={c*cw+.3} y={r*ch+.3} width={cw-.6} height={ch-.6} fill="#0F172A" rx={cw*.12}/>
+        : null
+      ))}
+    </svg>
+  );
+}
+
+/* ── State 1: Booking Form ── */
+function BookingForm({ onProceed }) {
+  const [qty,      setQty]      = React.useState(2);
+  const [email,    setEmail]    = React.useState('');
+  const [emailErr, setEmailErr] = React.useState('');
+  const [loading,  setLoading]  = React.useState(false);
+  const [apiErr,   setApiErr]   = React.useState('');
+  const total = qty * PRICE_PER_TICKET;
+
+  async function handleProceed() {
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!ok) { setEmailErr('Please enter a valid email address'); return; }
+    setEmailErr('');
+    setApiErr('');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: EVENT_ID, customerEmail: email, quantity: qty }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setApiErr(data.error || 'Failed to create order'); return; }
+      onProceed({ qty, email, total: data.totalAmount, orderId: data.orderId, qrUrl: data.qrUrl });
+    } catch {
+      setApiErr('Network error — please try again');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="screen">
+      {/* Event Hero */}
+      <div style={{borderRadius:'12px 12px 0 0',overflow:'hidden',position:'relative'}}>
+        <div style={{background:'linear-gradient(135deg,#1e1b4b 0%,#312e81 40%,#1e293b 100%)',padding:'28px 24px 24px',position:'relative'}}>
+          <div style={{position:'absolute',top:'-20px',right:'-20px',width:'120px',height:'120px',borderRadius:'50%',background:'rgba(79,70,229,.15)',pointerEvents:'none'}}/>
+          <div style={{position:'absolute',bottom:'-30px',right:'30px',width:'80px',height:'80px',borderRadius:'50%',background:'rgba(99,102,241,.1)',pointerEvents:'none'}}/>
+          <div style={{position:'relative',zIndex:1}}>
+            <div style={{display:'inline-flex',alignItems:'center',gap:'6px',background:'rgba(79,70,229,.3)',border:'1px solid rgba(99,102,241,.4)',borderRadius:'20px',padding:'4px 12px',marginBottom:'14px'}}>
+              <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#818CF8',display:'inline-block'}}/>
+              <span style={{fontFamily:C.sans,fontSize:'12px',fontWeight:600,color:'#c7d2fe',letterSpacing:'0.04em'}}>TICKETS AVAILABLE</span>
+            </div>
+            <div style={{fontFamily:C.sans,fontSize:'22px',fontWeight:700,color:'#F8FAFC',lineHeight:'1.25',letterSpacing:'-0.02em',marginBottom:'10px'}}>
+              {EVENT.title}
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:'5px'}}>
+              {[
+                ['📅', EVENT.date],
+                ['🕘', EVENT.time],
+                ['📍', EVENT.venue],
+              ].map(([icon,text])=>(
+                <div key={text} style={{display:'flex',alignItems:'center',gap:'7px'}}>
+                  <span style={{fontSize:'12px'}}>{icon}</span>
+                  <span style={{fontFamily:C.sans,fontSize:'13px',color:'#c7d2fe',fontWeight:400}}>{text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div style={{position:'absolute',top:'20px',right:'20px',background:'rgba(79,70,229,.9)',backdropFilter:'blur(8px)',borderRadius:'10px',padding:'8px 12px',textAlign:'center',border:'1px solid rgba(129,140,248,.3)'}}>
+          <div style={{fontFamily:C.mono,fontSize:'18px',fontWeight:700,color:'#fff',lineHeight:1}}>฿{PRICE_PER_TICKET}</div>
+          <div style={{fontFamily:C.sans,fontSize:'10px',color:'rgba(199,210,254,.8)',marginTop:'2px',fontWeight:500}}>per ticket</div>
+        </div>
+      </div>
+
+      {/* Form Body */}
+      <div style={{padding:'24px',display:'flex',flexDirection:'column',gap:'20px'}}>
+        {/* Quantity */}
+        <div>
+          <Label>Number of Tickets</Label>
+          <div style={{display:'flex',alignItems:'center',gap:'0',background:C.surface,borderRadius:'8px',border:`1px solid ${C.border}`,overflow:'hidden',height:'48px'}}>
+            <button onClick={()=>setQty(q=>Math.max(1,q-1))} style={{width:'52px',height:'48px',background:'transparent',border:'none',cursor:'pointer',color:qty<=1?C.txtOff:C.txt1,fontSize:'20px',fontWeight:300,display:'flex',alignItems:'center',justifyContent:'center',transition:'background 120ms',flexShrink:0,borderRight:`1px solid ${C.border}`}}
+              onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,.05)'}
+              onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+              −
+            </button>
+            <div style={{flex:1,textAlign:'center',fontFamily:C.mono,fontSize:'20px',fontWeight:700,color:C.txt1,letterSpacing:'0.02em'}}>
+              {qty}
+            </div>
+            <button onClick={()=>setQty(q=>Math.min(10,q+1))} style={{width:'52px',height:'48px',background:'transparent',border:'none',cursor:'pointer',color:qty>=10?C.txtOff:C.txt1,fontSize:'20px',fontWeight:300,display:'flex',alignItems:'center',justifyContent:'center',transition:'background 120ms',flexShrink:0,borderLeft:`1px solid ${C.border}`}}
+              onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,.05)'}
+              onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+              +
+            </button>
+          </div>
+          <div style={{fontFamily:C.sans,fontSize:'12px',color:C.txt3,marginTop:'6px'}}>Maximum 10 tickets per order</div>
+        </div>
+
+        {/* Email */}
+        <div>
+          <Label required>Customer Email</Label>
+          <TextInput
+            id="email" type="email" value={email}
+            onChange={e=>{setEmail(e.target.value); setEmailErr('');}}
+            placeholder="you@example.com"
+          />
+          {emailErr && <div style={{fontFamily:C.sans,fontSize:'12px',color:C.danger,marginTop:'6px',display:'flex',alignItems:'center',gap:'5px'}}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {emailErr}
+          </div>}
+        </div>
+
+        {/* Total */}
+        <div style={{background:'rgba(79,70,229,.06)',border:`1px solid rgba(79,70,229,.2)`,borderRadius:'10px',padding:'16px 18px'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+            <span style={{fontFamily:C.sans,fontSize:'13px',color:C.txt2}}>{qty} ticket{qty>1?'s':''} × ฿{PRICE_PER_TICKET}</span>
+            <span style={{fontFamily:C.mono,fontSize:'14px',color:C.txt2}}>฿{qty*PRICE_PER_TICKET}</span>
+          </div>
+          <div style={{height:'1px',background:'rgba(79,70,229,.15)',marginBottom:'10px'}}/>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline'}}>
+            <span style={{fontFamily:C.sans,fontSize:'14px',fontWeight:600,color:C.txt1}}>Total</span>
+            <span style={{fontFamily:C.mono,fontSize:'26px',fontWeight:700,color:C.txt1,letterSpacing:'-0.01em'}}>
+              ฿{total.toLocaleString()}
+            </span>
+          </div>
+        </div>
+
+        {apiErr && <div style={{fontFamily:C.sans,fontSize:'13px',color:C.danger,background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.2)',borderRadius:'8px',padding:'10px 14px'}}>{apiErr}</div>}
+
+        <Btn variant="primary" fullWidth size="lg" loading={loading} onClick={handleProceed}>
+          {!loading && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
+          {loading ? 'Creating order…' : 'Proceed to Payment'}
+        </Btn>
+
+        <div style={{textAlign:'center',fontFamily:C.sans,fontSize:'12px',color:C.txt3,display:'flex',alignItems:'center',justifyContent:'center',gap:'5px'}}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Secured by PopTic · SSL encrypted
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── State 2: Checkout / QR Payment ── */
+function CheckoutScreen({ order, onSuccess, onBack }) {
+  const [secs, setSecs]       = React.useState(300);
+  const [simLoading, setSimLoading] = React.useState(false);
+
+  // countdown
+  React.useEffect(()=>{
+    if (secs<=0) return;
+    const t = setTimeout(()=>setSecs(s=>s-1), 1000);
+    return ()=>clearTimeout(t);
+  },[secs]);
+
+  // poll order status every 3s
+  React.useEffect(()=>{
+    const poll = setInterval(async ()=>{
+      try {
+        const res = await fetch(`/api/orders/${order.orderId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.status === 'paid') {
+          clearInterval(poll);
+          onSuccess(data.ticketCodes);
+        }
+      } catch {}
+    }, 3000);
+    return ()=>clearInterval(poll);
+  }, [order.orderId]);
+
+  async function handleSimulate() {
+    setSimLoading(true);
+    try {
+      await fetch(`/api/dev/simulate/${order.orderId}`, { method: 'POST' });
+    } catch {}
+    setSimLoading(false);
+  }
+
+  const expired = secs <= 0;
+  const danger  = secs <= 60 && !expired;
+  const urgent  = secs <= 30 && !expired;
+  const timerColor  = expired||danger ? C.danger : C.warning;
+  const timerBg     = expired||danger ? 'rgba(239,68,68,.10)' : 'rgba(245,158,11,.10)';
+  const timerBorder = expired||danger ? 'rgba(239,68,68,.25)' : 'rgba(245,158,11,.25)';
+  const mm = String(Math.floor(Math.abs(secs)/60)).padStart(2,'0');
+  const ss = String(Math.abs(secs)%60).padStart(2,'0');
+  const shortId = order.orderId.slice(0,8).toUpperCase();
+
+  return (
+    <div className="screen">
+      {/* Urgency Banner */}
+      <div style={{background:timerBg,borderBottom:`1px solid ${timerBorder}`,padding:'12px 20px',display:'flex',alignItems:'center',justifyContent:'space-between',borderRadius:'12px 12px 0 0',transition:'background 300ms ease,border-color 300ms ease'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={timerColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span style={{fontFamily:C.sans,fontSize:'13px',fontWeight:500,color:timerColor}}>
+            {expired ? 'Order expired — please try again' : 'Order reserved · Expires in'}
+          </span>
+        </div>
+        <div style={{fontFamily:C.mono,fontSize:'18px',fontWeight:700,color:timerColor,letterSpacing:'0.06em',animation:urgent?'pulse 1s ease-in-out infinite':'none',transition:'color 300ms ease'}}>
+          {expired ? '00:00' : `${mm}:${ss}`}
+        </div>
+      </div>
+
+      <div style={{padding:'24px',display:'flex',flexDirection:'column',alignItems:'center',gap:'20px'}}>
+        {/* Amount */}
+        <div style={{textAlign:'center',width:'100%'}}>
+          <div style={{fontFamily:C.sans,fontSize:'12px',fontWeight:500,color:C.txt3,letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:'4px'}}>Total Amount</div>
+          <div style={{fontFamily:C.mono,fontSize:'40px',fontWeight:700,color:C.txt1,letterSpacing:'-0.02em',lineHeight:1}}>
+            {order.total.toLocaleString()}.00
+            <span style={{fontFamily:C.sans,fontSize:'18px',fontWeight:600,color:C.txt2,marginLeft:'6px',letterSpacing:'-0.01em'}}>THB</span>
+          </div>
+          <div style={{fontFamily:C.sans,fontSize:'13px',color:C.txt3,marginTop:'6px'}}>
+            {order.qty} ticket{order.qty>1?'s':''} · {EVENT.title}
+          </div>
+        </div>
+
+        {/* QR Container */}
+        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'12px'}}>
+          <div style={{width:'250px',height:'250px',background:'#FFFFFF',borderRadius:'14px',display:'flex',alignItems:'center',justifyContent:'center',padding:'18px',boxSizing:'border-box',boxShadow:'0 0 0 1px rgba(0,0,0,.06), 0 8px 32px rgba(0,0,0,.35)'}}>
+            {order.qrUrl && order.qrUrl !== 'mock-qr'
+              ? <img src={order.qrUrl} style={{width:'214px',height:'214px',display:'block',objectFit:'contain'}} alt="PromptPay QR Code"/>
+              : <QRCode size={214} />
+            }
+          </div>
+          <div style={{textAlign:'center'}}>
+            <div style={{fontFamily:C.sans,fontSize:'13px',fontWeight:600,color:C.txt1,marginBottom:'2px'}}>Scan with any banking app</div>
+            <div style={{fontFamily:C.sans,fontSize:'12px',color:C.txt3}}>PromptPay · KBank · SCB · BBL · KTB</div>
+          </div>
+        </div>
+
+        {/* Ref number (real orderId) */}
+        <div style={{width:'100%',background:C.surface,borderRadius:'8px',padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',border:`1px solid ${C.border}`}}>
+          <span style={{fontFamily:C.sans,fontSize:'12px',color:C.txt3}}>Reference No.</span>
+          <span style={{fontFamily:C.mono,fontSize:'13px',fontWeight:600,color:C.txt2,letterSpacing:'0.04em'}}>TXN-{shortId}</span>
+        </div>
+
+        {/* Polling spinner */}
+        <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 0'}}>
+          <div style={{width:'18px',height:'18px',borderRadius:'50%',border:`2px solid rgba(148,163,184,.2)`,borderTopColor:C.txt2,animation:'spin 1.2s linear infinite',flexShrink:0}}/>
+          <span style={{fontFamily:C.sans,fontSize:'13px',color:C.txt2}}>Waiting for payment verification…</span>
+        </div>
+
+        {/* Actions */}
+        <div style={{width:'100%',display:'flex',flexDirection:'column',gap:'10px'}}>
+          <Btn variant="success" fullWidth loading={simLoading} onClick={handleSimulate}>
+            {!simLoading && <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+            {simLoading ? 'Processing…' : 'Simulate Payment Success'}
+          </Btn>
+          <Btn variant="ghost" fullWidth size="sm" onClick={onBack}>← Back to booking</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── State 3: Success ── */
+function SuccessScreen({ order, onReset }) {
+  const [drawn, setDrawn] = React.useState(false);
+  React.useEffect(()=>{ const t=setTimeout(()=>setDrawn(true),150); return()=>clearTimeout(t); },[]);
+
+  return (
+    <div className="screen" style={{padding:'32px 24px 28px',display:'flex',flexDirection:'column',alignItems:'center',gap:'24px'}}>
+      {/* Checkmark */}
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'14px'}}>
+        <div style={{width:'80px',height:'80px',animation:'circlePop 400ms cubic-bezier(0.34,1.56,0.64,1) both'}}>
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="38" fill="rgba(16,185,129,.12)" stroke="#10B981" strokeWidth="2.5"/>
+            <polyline points="22,40 36,54 58,28"
+              fill="none" stroke="#10B981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"
+              style={{strokeDasharray:54,strokeDashoffset:drawn?0:54,transition:'stroke-dashoffset 500ms cubic-bezier(.4,0,.2,1) 300ms'}}/>
+          </svg>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <div style={{fontFamily:C.sans,fontSize:'22px',fontWeight:700,color:C.txt1,letterSpacing:'-0.02em',marginBottom:'6px'}}>Payment Successful!</div>
+          <div style={{fontFamily:C.sans,fontSize:'14px',color:C.txt2,lineHeight:'1.5'}}>Your tickets have been confirmed.<br/>A receipt has been sent to your email.</div>
+        </div>
+      </div>
+
+      {/* Ticket badges (one per ticket) */}
+      {order.ticketCodes.map((code, i) => (
+        <div key={code} style={{width:'100%',animation:`ticketIn 400ms cubic-bezier(.22,1,.36,1) ${200 + i*80}ms both`}}>
+          <div style={{background:'linear-gradient(135deg,#1e1b4b,#312e81)',borderRadius:'12px 12px 0 0',padding:'18px 20px',position:'relative',overflow:'hidden'}}>
+            <div style={{position:'absolute',top:'-15px',right:'-15px',width:'80px',height:'80px',borderRadius:'50%',background:'rgba(129,140,248,.12)'}}/>
+            <div style={{fontFamily:C.sans,fontSize:'11px',fontWeight:600,color:'rgba(199,210,254,.7)',letterSpacing:'0.1em',marginBottom:'8px'}}>E-TICKET #{i+1} · TECH CONFERENCE 2026</div>
+            <div style={{fontFamily:C.mono,fontSize:'24px',fontWeight:700,color:'#e0e7ff',letterSpacing:'0.04em'}}>{code}</div>
+          </div>
+          <div style={{height:'20px',background:C.surface,display:'flex',alignItems:'center',position:'relative'}}>
+            <div style={{position:'absolute',left:'-12px',width:'24px',height:'24px',borderRadius:'50%',background:'#0a1120'}}/>
+            <div style={{flex:1,borderTop:'2px dashed #334155',margin:'0 20px'}}/>
+            <div style={{position:'absolute',right:'-12px',width:'24px',height:'24px',borderRadius:'50%',background:'#0a1120'}}/>
+          </div>
+          <div style={{background:C.surface,borderRadius:'0 0 12px 12px',border:`1px solid ${C.border}`,borderTop:'none',padding:'16px 20px',display:'flex',flexDirection:'column',gap:'10px'}}>
+            {[
+              ['Attendee Email', order.email],
+              ['Event Date',     EVENT.date],
+              ['Venue',          EVENT.venue],
+              ['Amount Paid',    `฿${order.total.toLocaleString()}.00`],
+            ].map(([k,v])=>(
+              <div key={k} style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span style={{fontFamily:C.sans,fontSize:'12px',color:C.txt3,fontWeight:500}}>{k}</span>
+                <span style={{fontFamily:k==='Amount Paid'?C.mono:C.sans,fontSize:'13px',fontWeight:600,color:k==='Amount Paid'?C.success:C.txt1,letterSpacing:k==='Amount Paid'?'0.02em':'normal'}}>{v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <div style={{width:'100%',background:'rgba(16,185,129,.06)',border:'1px solid rgba(16,185,129,.2)',borderRadius:'8px',padding:'10px 14px',display:'flex',alignItems:'center',gap:'8px'}}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.success} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <span style={{fontFamily:C.sans,fontSize:'12px',color:'#34D399'}}>Ticket saved to your PopTic account</span>
+      </div>
+
+      <Btn variant="secondary" fullWidth size="md" onClick={onReset}>
+        Book Another Ticket
+      </Btn>
+    </div>
+  );
+}
+
+/* ── App Shell ── */
+function App() {
+  const [screen,  setScreen]  = React.useState('booking');
+  const [order,   setOrder]   = React.useState(null);
+  const [animKey, setAnimKey] = React.useState(0);
+
+  function go(s, data) {
+    if (data) setOrder(prev => ({ ...prev, ...data }));
+    setScreen(s);
+    setAnimKey(k=>k+1);
+  }
+
+  return (
+    <div style={{width:'100%',maxWidth:'450px'}}>
+      {/* Header */}
+      <div style={{display:'flex',justifyContent:'center',marginBottom:'20px'}}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="108" height="30" viewBox="0 0 144 40" fill="none">
+          <rect x="0" y="0" width="40" height="40" rx="10" fill="#4F46E5"/>
+          <circle cx="0"  cy="20" r="5" fill="#0a1120"/>
+          <circle cx="40" cy="20" r="5" fill="#0a1120"/>
+          <text x="20" y="26" textAnchor="middle" fontFamily="Inter,-apple-system,sans-serif" fontSize="16" fontWeight="700" fill="#FFFFFF" letterSpacing="1">PT</text>
+          <text x="49" y="27" fontFamily="Inter,-apple-system,sans-serif" fontSize="20" fontWeight="700" fill="#F8FAFC">Pop</text>
+          <text x="95" y="27" fontFamily="Inter,-apple-system,sans-serif" fontSize="20" fontWeight="700" fill="#4F46E5">Tic</text>
+        </svg>
+      </div>
+
+      {/* Card */}
+      <div style={{background:C.bg,borderRadius:'14px',border:`1px solid ${C.border}`,boxShadow:'0 20px 60px rgba(0,0,0,.55), 0 4px 16px rgba(0,0,0,.35)',overflow:'hidden'}}>
+        <div key={animKey}>
+          {screen==='booking'  && <BookingForm onProceed={d=>go('checkout', d)} />}
+          {screen==='checkout' && <CheckoutScreen order={order} onSuccess={codes=>go('success',{ticketCodes:codes})} onBack={()=>go('booking')} />}
+          {screen==='success'  && <SuccessScreen  order={order} onReset={()=>go('booking')} />}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{textAlign:'center',marginTop:'16px',fontFamily:C.sans,fontSize:'12px',color:'#334155',display:'flex',alignItems:'center',justifyContent:'center',gap:'12px'}}>
+        <span>© 2026 PopTic</span><span>·</span><span>Privacy</span><span>·</span><span>Terms</span>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
